@@ -1,31 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Container, TextField, Button, Typography, Box, Alert, CircularProgress
 } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const LoginPage = () => {
-  const { login, user } = useAuth();
-  const navigate = useNavigate();
+  const { login } = useAuth();
   const location = useLocation();
-
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError]   = useState('');
-  const [info, setInfo]     = useState('');
+  const [error, setError] = useState('');
+  const [info] = useState(
+    location.state?.fromRegister
+      ? 'Zarejestrowano pomyślnie – możesz się teraz zalogować.'
+      : ''
+  );
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (location.state?.fromRegister) {
-      setInfo('Zarejestrowano pomyślnie – możesz się teraz zalogować.');
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-  }, [location, navigate]);
-
-  useEffect(() => {
-    if (user) navigate('/');
-  }, [user, navigate]);
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -33,8 +24,8 @@ const LoginPage = () => {
     setLoading(true);
     try {
       await login(nickname, password);
-    } catch {
-      setError('Błąd logowania: złe dane');
+    } catch (err) {
+      setError('Błąd logowania: ' + (err.response?.data?.message || 'niepoprawne dane'));
     } finally {
       setLoading(false);
     }
@@ -43,7 +34,7 @@ const LoginPage = () => {
   return (
     <Container maxWidth="xs" sx={{ mt: 8 }}>
       <Typography variant="h4" gutterBottom>Logowanie</Typography>
-      {info && <Alert severity="info" sx={{ mb: 2 }}>{info}</Alert>}
+      {info && <Alert severity="success" sx={{ mb: 2 }}>{info}</Alert>}
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
         <TextField
@@ -68,6 +59,11 @@ const LoginPage = () => {
         >
           {loading ? <CircularProgress size={24} /> : 'Zaloguj'}
         </Button>
+      </Box>
+      <Box mt={2}>
+        <Typography>
+          Nie masz konta? <Link to="/register">Zarejestruj się</Link>
+        </Typography>
       </Box>
     </Container>
   );

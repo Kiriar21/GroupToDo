@@ -1,22 +1,22 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 import App from './App';
 import { AuthProvider } from './context/AuthContext';
-import CssBaseline from '@mui/material/CssBaseline';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { BrowserRouter } from 'react-router-dom';
 
 const darkTheme = createTheme({ palette: { mode: 'dark' } });
-const root = ReactDOM.createRoot(document.getElementById('root'));
 
-root.render(
+ReactDOM.createRoot(document.getElementById('root')).render(
   <ThemeProvider theme={darkTheme}>
     <BrowserRouter>
-    <CssBaseline />
-    <AuthProvider>
-      <App />
-    </AuthProvider>
+      <CssBaseline />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </BrowserRouter>
   </ThemeProvider>
 );
