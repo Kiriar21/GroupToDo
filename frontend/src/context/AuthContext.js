@@ -2,6 +2,8 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import api, { setApiToken } from '../services/api';
+import socket from '../services/socket';
+
 
 const TOKEN_KEY = 'token';
 const AuthContext = createContext();
@@ -18,6 +20,8 @@ useEffect(() => {
       const decoded = jwtDecode(token);
       if (decoded.userId && decoded.nickname) {
         setUser({ id: decoded.userId, nickname: decoded.nickname });
+        socket.auth = { token };
+        socket.connect();
       } else {
         setUser(null);
       }
@@ -35,6 +39,8 @@ useEffect(() => {
     const { user: u, token } = await api.login(nickname, password);
     localStorage.setItem(TOKEN_KEY, token);
     setApiToken(token);
+    socket.auth = { token };  
+    socket.connect();         
     setUser(u);
     navigate('/dashboard', { replace: true });
   };
@@ -43,6 +49,8 @@ useEffect(() => {
     const { user: u, token } = await api.register(nickname, password);
     localStorage.setItem(TOKEN_KEY, token);
     setApiToken(token);
+    socket.auth = { token };  
+    socket.connect();         
     setUser(u);
     navigate('/dashboard', { replace: true });
   };
@@ -50,6 +58,7 @@ useEffect(() => {
   const logout = async () => {
     localStorage.removeItem(TOKEN_KEY);
     setApiToken(null);
+    socket.disconnect();
     setUser(null);
     navigate('/', { replace: true });
   };

@@ -52,6 +52,10 @@ const DashboardPage = () => {
   }, []);
 
   useEffect(() => {
+    socket.connect();
+  }, []);
+
+  useEffect(() => {
     
     loadProjects();
     loadInvitations();
