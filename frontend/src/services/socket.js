@@ -1,14 +1,14 @@
 import { io } from 'socket.io-client';
+import { getToken } from '../context/AuthContext';
 
-const socket = io('http://localhost:5000', {
+const socket = io(process.env.REACT_APP_WS_URL, {
   autoConnect: false,
-  withCredentials: true,
+  auth: () => ({ token: getToken() }),
 });
 
-socket.on('connect_error', err => {
+socket.on('connect_error', (err) => {
   console.error('Socket connect error:', err);
 });
-
 socket.on('disconnect', () => {
   console.log('Socket disconnected');
 });

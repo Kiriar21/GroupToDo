@@ -1,31 +1,32 @@
-module.exports = (io, sessionMiddleware) => {
+const { verify } = require('./utils/jwt');
+const Project = require('./models/Project');
+
+module.exports = (io) => {
   const onlineUsers = new Set();
 
   io.use((socket, next) => {
-    sessionMiddleware(socket.request, {}, next);
+    const token = socket.handshake.auth.token;
+    const payload = verify(token);
+    if (!payload) return next(new Error('Authentication error'));
+    socket.userId = payload.userId;
+    next();
   });
 
   io.on('connection', (socket) => {
-    const session = socket.request.session;
-    if (!session || !session.userId) {
-      return socket.disconnect(true);
-    }
+    const uid = socket.userId;
+    onlineUsers.add(uid);
 
-    const userId = session.userId.toString();
-    
-    onlineUsers.add(userId);
     io.emit('user:online', Array.from(onlineUsers));
 
-    socket.on('disconnect', () => {
-      onlineUsers.delete(userId);
-      io.emit('user:online', Array.from(onlineUsers));
-    });
-
-    const Project = require('./models/Project');
-    Project.find({ members: userId }).then(projects => {
+    Project.find({ members: uid }).then(projects => {
       projects.forEach(p => socket.join(`project_${p._id}`));
     });
 
-    socket.join(`user_${userId}`);
+    socket.join(`user_${uid}`);
+
+    socket.on('disconnect', () => {
+      onlineUsers.delete(uid);
+      io.emit('user:online', Array.from(onlineUsers));
+    });
   });
 };

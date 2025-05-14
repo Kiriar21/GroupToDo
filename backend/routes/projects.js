@@ -8,7 +8,7 @@ const router = express.Router();
 
 
 router.get('/', isAuthenticated, async (req, res) => {
-  const projects = await Project.find({ members: req.session.userId });
+  const projects = await Project.find({ members: req.userId });
   res.json(projects);
 });
 
@@ -18,10 +18,10 @@ router.post('/', isAuthenticated, async (req, res) => {
     const proj = await Project.create({
       name: req.body.name,
       description: req.body.description,
-      owner: req.session.userId,
-      members: [req.session.userId]
+      owner: req.userId,
+      members: [req.userId]
     });
-    req.io.to(`user_${req.session.userId}`).emit('project:created', proj);
+    req.io.to(`user_${req.userId}`).emit('project:created', proj);
     res.status(201).json(proj);
   } catch (err) {
     next(err);
@@ -77,7 +77,7 @@ router.post('/:projectId/invitations', isAuthenticated, isProjectOwner, async (r
   const inv = await Invitation.create({
     projectId: req.params.projectId,
     invitedUser: invitedUser._id,
-    invitedBy: req.session.userId
+    invitedBy: req.userId
   });
   req.io.to(`project_${req.params.projectId}`).emit('invitation:sent', inv);
   res.json(inv);

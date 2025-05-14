@@ -14,7 +14,7 @@ router.post('/', isAuthenticated, async (req, res) => {
     projectId: req.params.projectId,
     title: req.body.title,
     description: req.body.description,
-    author: req.session.userId
+    author: req.userId
   });
   req.io.to(`project_${req.params.projectId}`).emit('task:created', task);
   res.json(task);
@@ -23,15 +23,15 @@ router.post('/', isAuthenticated, async (req, res) => {
 router.put('/:taskId', isAuthenticated, async (req, res) => {
   const task = await Task.findById(req.params.taskId);
   if (!task) return res.status(404).json({ message: 'Task not found' });
-  const isOwner = task.author.equals(req.session.userId);
+  const isOwner = task.author.equals(req.userId);
   const project = await Project.findById(task.projectId);
-  const isProjOwner = project.owner.equals(req.session.userId);
+  const isProjOwner = project.owner.equals(req.userId);
   if (!isOwner && !isProjOwner) return res.status(403).json({ message: 'Forbidden' });
 
   const { status, assignee, title, description } = req.body;
   if (status && status !== task.status) {
     task.status = status;
-    if (status === 'In Progress') task.assignee = req.session.userId;
+    if (status === 'In Progress') task.assignee = req.userId;
   }
   if (assignee && isProjOwner) task.assignee = assignee;
   if (title) task.title = title;
@@ -46,9 +46,9 @@ router.put('/:taskId', isAuthenticated, async (req, res) => {
 router.delete('/:taskId', isAuthenticated, async (req, res) => {
   const task = await Task.findById(req.params.taskId);
   if (!task) return res.status(404).json({ message: 'Task not found' });
-  const isOwner = task.author.equals(req.session.userId);
+  const isOwner = task.author.equals(req.userId);
   const project = await Project.findById(task.projectId);
-  const isProjOwner = project.owner.equals(req.session.userId);
+  const isProjOwner = project.owner.equals(req.userId);
   if (!isOwner && !isProjOwner) return res.status(403).json({ message: 'Forbidden' });
 
   await task.remove();

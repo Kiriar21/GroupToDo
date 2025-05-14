@@ -4,7 +4,6 @@ const http = require('http');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
-const sessionMiddleware = require('./config/session');
 
 const app = express();
 const server = http.createServer(app);
@@ -18,7 +17,6 @@ connectDB();
 app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
-app.use(sessionMiddleware);
 
 app.use((req, res, next) => { req.io = io; next(); });
 
@@ -28,7 +26,15 @@ app.use('/api/projects', require('./routes/projects'));
 app.use('/api/projects/:projectId/tasks', require('./routes/tasks'));
 app.use('/api/invitations', require('./routes/invitations'));
 
-require('./socket')(io, sessionMiddleware);
+require('./socket')(io);
+
+io.on('connection', (socket) => {
+  console.log(`User connected: ${socket.id}`);
+
+  socket.on('disconnect', () => {
+    console.log(`User disconnected: ${socket.id}`);
+  });
+});
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

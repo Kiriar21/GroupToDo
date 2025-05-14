@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.get('/', isAuthenticated, async (req, res) => {
   const invs = await Invitation.find({
-    invitedUser: req.session.userId,
+    invitedUser: req.userId,
     status: 'pending'
   })
   .populate('projectId', 'name')
@@ -19,17 +19,22 @@ router.get('/', isAuthenticated, async (req, res) => {
 router.put('/:invId/accept', isAuthenticated, async (req, res, next) => {
   try {
     const inv = await Invitation.findById(req.params.invId);
-    if (!inv || inv.invitedUser.toString() !== req.session.userId) {
+    if (!inv || inv.invitedUser.toString() !== req.userId) {
       return res.status(404).json({ message: 'Invitation not found' });
     }
 
     await Project.findByIdAndUpdate(inv.projectId, {
-      $addToSet: { members: req.session.userId }
+      $addToSet: { members: req.userId }
     });
 
-    req.io.to(`project_${inv.projectId}`).emit('member:added', { userId: req.session.userId });
+    req.io.to(`project_${inv.projectId}`).emit('member:added', { userId: req.userId });
     
-    await Invitation.findByIdAndDelete(inv._id);
+    await Invitation.findByIdAndUpdate(inv._id, { status: 'accepted' });
+    await Project.findByIdAndUpdate(inv.projectId, {
+      $addToSet: { members: req.userId }
+    });
+    io.to(`project_${inv.projectId}`).emit('member:added', { userId: req.userId });
+    await Invitation.deleteOne({ _id: inv._id });
 
     res.json({ message: 'Invitation accepted' });
   } catch (err) {
@@ -40,7 +45,7 @@ router.put('/:invId/accept', isAuthenticated, async (req, res, next) => {
 
 router.put('/:invId/decline', isAuthenticated, async (req, res) => {
   const inv = await Invitation.findById(req.params.invId);
-  if (!inv || inv.invitedUser.toString() !== req.session.userId) {
+  if (!inv || inv.invitedUser.toString() !== req.userId) {
     return res.status(404).json({ message: 'Invitation not found' });
   }
   await Invitation.findByIdAndDelete(req.params.invId);
