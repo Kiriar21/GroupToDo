@@ -23,18 +23,29 @@ router.put('/:invId/accept', isAuthenticated, async (req, res, next) => {
       return res.status(404).json({ message: 'Invitation not found' });
     }
 
+    const project = await Project.findById(inv.projectId);
+    if (!project) {
+      await Invitation.findByIdAndDelete(inv._id);
+      req.io.to(`user_${req.userId}`).emit('invitation:removed', { invId: inv._id });
+      return res.status(410).json({ message: 'Projekt nie istnieje – zaproszenie usunięte.' });
+    }
+
     await Project.findByIdAndUpdate(inv.projectId, {
       $addToSet: { members: req.userId }
     });
 
     req.io.to(`project_${inv.projectId}`).emit('member:added', { userId: req.userId });
-    
+
     await Invitation.findByIdAndUpdate(inv._id, { status: 'accepted' });
-    await Project.findByIdAndUpdate(inv.projectId, {
-      $addToSet: { members: req.userId }
-    });
-    io.to(`project_${inv.projectId}`).emit('member:added', { userId: req.userId });
     await Invitation.deleteOne({ _id: inv._id });
+
+    req.io.to(`user_${req.userId}`).emit('invitation:removed', { invId: inv._id });
+
+    const populatedProject = await Project.findById(inv.projectId)
+      .populate('members', 'nickname')
+      .populate('owner', 'nickname');
+
+    req.io.to(`user_${req.userId}`).emit('project:created', populatedProject);
 
     res.json({ message: 'Invitation accepted' });
   } catch (err) {
@@ -48,9 +59,19 @@ router.put('/:invId/decline', isAuthenticated, async (req, res) => {
   if (!inv || inv.invitedUser.toString() !== req.userId) {
     return res.status(404).json({ message: 'Invitation not found' });
   }
+
+  const project = await Project.findById(inv.projectId);
+  if (!project) {
+    await Invitation.findByIdAndDelete(inv._id);
+    req.io.to(`user_${req.userId}`).emit('invitation:removed', { invId: inv._id });
+    return res.status(410).json({ message: 'Projekt nie istnieje – zaproszenie usunięte.' });
+  }
+
   await Invitation.findByIdAndDelete(req.params.invId);
+  req.io.to(`user_${req.userId}`).emit('invitation:removed', { invId: inv._id });
   res.json({ message: 'Invitation declined' });
 });
+
 
 
 module.exports = router;

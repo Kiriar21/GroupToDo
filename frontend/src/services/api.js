@@ -41,6 +41,13 @@ const api = {
       .get('/auth/session')
       .then(r => r.data),
 
+
+  getProjectById: (projectId) =>
+    apiInstance
+    .get(`/projects/${projectId}`)
+    .then(r => r.data),
+
+
   getProjects: () =>
     apiInstance
       .get('/projects')

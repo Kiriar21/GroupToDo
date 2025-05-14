@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Box, Typography, TextField, Button, Alert } from '@mui/material';
 import api from '../services/api';
 import socket from '../services/socket';
@@ -20,6 +20,14 @@ const AddUserModal = ({ open, onClose, project }) => {
       setError(err.response?.data?.message || 'Błąd zaproszenia');
     }
   };
+
+  useEffect(() => {
+    if (open) {
+      setSuccess('');
+      setError('');
+      setNickname('');
+    }
+  }, [open]);
 
   return (
     <Modal open={open} onClose={onClose}>

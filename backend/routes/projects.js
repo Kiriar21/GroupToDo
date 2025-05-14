@@ -8,9 +8,12 @@ const router = express.Router();
 
 
 router.get('/', isAuthenticated, async (req, res) => {
-  const projects = await Project.find({ members: req.userId });
+  const projects = await Project.find({ members: req.userId })
+    .populate('members', 'nickname')
+    .populate('owner', 'nickname');
   res.json(projects);
 });
+
 
 router.post('/', isAuthenticated, async (req, res) => {
   try{
@@ -63,10 +66,18 @@ router.put('/:projectId', isAuthenticated, isProjectOwner, async (req, res) => {
 });
 
 router.delete('/:projectId', isAuthenticated, isProjectOwner, async (req, res) => {
+  const project = await Project.findById(req.params.projectId);
   await Project.findByIdAndDelete(req.params.projectId);
+
   req.io.to(`project_${req.params.projectId}`).emit('project:deleted', { projectId: req.params.projectId });
+
+  if (project && project.owner) {
+    req.io.to(`user_${project.owner}`).emit('project:deleted', { projectId: req.params.projectId });
+  }
+
   res.json({ message: 'Project deleted' });
 });
+
 
 router.post('/:projectId/invitations', isAuthenticated, isProjectOwner, async (req, res) => {
   const { nickname } = req.body;
@@ -80,6 +91,8 @@ router.post('/:projectId/invitations', isAuthenticated, isProjectOwner, async (r
     invitedBy: req.userId
   });
   req.io.to(`project_${req.params.projectId}`).emit('invitation:sent', inv);
+  req.io.to(`user_${invitedUser._id}`).emit('invitation:sent', inv);
+  
   res.json(inv);
 });
 

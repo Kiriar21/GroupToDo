@@ -55,31 +55,56 @@ const DashboardPage = () => {
     socket.connect();
   }, []);
 
+
+    useEffect(() => {
+      projects.forEach(p => {
+        socket.emit('joinProject', p._id);
+      });
+    }, [projects]);
+
   useEffect(() => {
     
     loadProjects();
     loadInvitations();
 
     
-    const handleProjectCreated = proj => {
+    const handleProjectCreated = async (proj) => {
       setProjects(prev =>
         prev.some(p => p._id === proj._id) ? prev : [...prev, proj]
       );
+      if (proj.owner?.toString() === user.id || proj.owner?._id === user.id) {
+        try {
+          const full = await api.getProjectById(proj._id);
+          setSelectedProject(full);
+          setProjects(prev => prev.map(p => p._id === full._id ? full : p));
+        } catch (e) {
+        }
+      }
     };
+
+
     const handleProjectDeleted = () => loadProjects();
     const handleProjectUpdated = () => loadProjects();
     const handleInvitationSent = () => loadInvitations();
-    const handleMemberAdded = ({ userId }) => {
-      
+    const handleInvitationRemoved = () => loadInvitations();
+    const handleMemberAdded = async ({ userId }) => {
       if (user.id === userId) {
-        loadProjects();
+        await loadProjects();
+      }
+      if (selectedProject) {
+        try {
+          const full = await api.getProjectById(selectedProject._id);
+          setSelectedProject(full);
+        } catch (e) {}
       }
     };
+
 
     socket.on('project:created', handleProjectCreated);
     socket.on('project:deleted', handleProjectDeleted);
     socket.on('project:updated', handleProjectUpdated);
     socket.on('invitation:sent', handleInvitationSent);
+    socket.on('invitation:removed', handleInvitationRemoved);
     socket.on('member:added', handleMemberAdded);
 
     return () => {
@@ -87,6 +112,7 @@ const DashboardPage = () => {
       socket.off('project:deleted', handleProjectDeleted);
       socket.off('project:updated', handleProjectUpdated);
       socket.off('invitation:sent', handleInvitationSent);
+      socket.off('invitation:removed', handleInvitationRemoved);
       socket.off('member:added', handleMemberAdded);
     };
   }, [loadProjects, loadInvitations, user.id]);
@@ -115,7 +141,7 @@ const DashboardPage = () => {
           />
 
           <Typography variant="h6" sx={{ mt: 2 }}>Zaproszenia</Typography>
-          <InvitationsModal invitations={invitations} />
+          <InvitationsModal invitations={invitations} reload={loadInvitations}/>
 
           <Button
             variant="outlined"
@@ -140,37 +166,44 @@ const DashboardPage = () => {
                   >
                     Dodaj zadanie
                   </Button>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    onClick={async () => {
-                      if (window.confirm('Usuń?')) {
-                        await api.deleteProject(selectedProject._id);
-                        socket.emit('project:delete', { projectId: selectedProject._id });
-                      }
-                    }}
-                  >
-                    Zamknij
-                  </Button>
+                  {selectedProject.owner && selectedProject.owner._id === user.id && (
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={async () => {
+                        if (window.confirm('Usuń?')) {
+                          await api.deleteProject(selectedProject._id);
+                          socket.emit('project:delete', { projectId: selectedProject._id });
+                        }
+                      }}
+                    >
+                      Zamknij
+                    </Button>
+                  )}
                 </Box>
               </Box>
 
-              <TaskBoard project={selectedProject} currentUser={user} />
+              <TaskBoard
+                project={selectedProject}
+                currentUser={user}
+                isOwner={selectedProject.owner && selectedProject.owner._id === user.id}
+              />
 
               <ParticipantList
                 project={selectedProject}
                 onMembersChange={members =>
-                  setSelectedProject(prev => ({ ...prev, members }))
-                }
+                  setSelectedProject(prev => ({ ...prev, members }))}
               />
 
-              <Button
-                variant="contained"
-                onClick={() => setShowAddUser(true)}
-                sx={{ mt: 2 }}
-              >
-                Dodaj osobę
-              </Button>
+              {selectedProject.owner && selectedProject.owner._id === user.id && (
+                <Button
+                  variant="contained"
+                  onClick={() => setShowAddUser(true)}
+                  sx={{ mt: 2 }}
+                >
+                  Dodaj osobę
+                </Button>
+              )}
             </>
           ) : (
             <Typography>Brak projektów</Typography>

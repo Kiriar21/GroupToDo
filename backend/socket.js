@@ -24,6 +24,14 @@ module.exports = (io) => {
 
     socket.join(`user_${uid}`);
 
+    socket.on('joinProject', (projectId) => {
+      socket.join(`project_${projectId}`);
+    });
+
+    socket.on('leaveProject', (projectId) => {
+      socket.leave(`project_${projectId}`);
+    });
+
     socket.on('disconnect', () => {
       onlineUsers.delete(uid);
       io.emit('user:online', Array.from(onlineUsers));

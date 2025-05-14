@@ -8,7 +8,7 @@ import socket from '../services/socket';
 
 const statuses = ['To Do', 'In Progress', 'Done'];
 
-const TaskBoard = ({ project, currentUser }) => {
+const TaskBoard = ({ project, currentUser, isOwner }) => {
   const [tasks, setTasks] = useState([]);
 
   // Ładowanie zadań opakowane w useCallback
@@ -58,6 +58,7 @@ const TaskBoard = ({ project, currentUser }) => {
                     task={t}
                     project={project}
                     currentUser={currentUser}
+                    isOwner={isOwner}
                   />
                 ))}
             </Box>
