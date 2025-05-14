@@ -1,24 +1,25 @@
 import React from 'react';
 import { List, ListItem, Button, Box, Typography } from '@mui/material';
 import api from '../services/api';
+import socket from '../services/socket';
 
-const InvitationsList = ({ invitations, refresh, refreshProjects }) => {
-  const handleAccept = async invId => {
-    await api.acceptInvitation(invId);
-    refresh();
-    refreshProjects();
+const InvitationsModal = ({ invitations }) => {
+  const handleAccept = async id => {
+    await api.acceptInvitation(id);
+    socket.emit('invitation:accept', { invId: id });
   };
-  const handleDecline = async invId => {
-    await api.declineInvitation(invId);
-    refresh();
+  const handleDecline = async id => {
+    await api.declineInvitation(id);
+    socket.emit('invitation:decline', { invId: id });
   };
 
   return (
     <List>
       {invitations.map(inv => (
         <ListItem key={inv._id}>
-          <Box display="flex" justifyContent="space-between" width="100%">
-            <Typography>{inv.projectName}</Typography>
+          <Box sx={{ display:'flex', flexDirection:'column', width: '100%' }}>
+            <Typography variant="subtitle1">{inv.projectId.name}</Typography>
+            <Typography variant="caption">Zaproszony przez: {inv.invitedBy.nickname}</Typography>
             <Box>
               <Button size="small" onClick={() => handleAccept(inv._id)}>Akceptuj</Button>
               <Button size="small" onClick={() => handleDecline(inv._id)}>Odrzuć</Button>
@@ -30,4 +31,4 @@ const InvitationsList = ({ invitations, refresh, refreshProjects }) => {
   );
 };
 
-export default InvitationsList;
+export default InvitationsModal;

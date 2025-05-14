@@ -52,7 +52,7 @@ export default {
     apiInstance.delete(`/projects/${projectId}/tasks/${taskId}`).then(r => r.data),
 
   inviteUser: (projectId, nickname) =>
-    apiInstance.post('/invitations', { projectId, nickname }).then(r => r.data),
+    apiInstance.post(`/projects/${projectId}/invitations`, { nickname }).then(r => r.data),
   acceptInvitation: invId =>
     apiInstance.put(`/invitations/${invId}/accept`).then(r => r.data),
   declineInvitation: invId =>

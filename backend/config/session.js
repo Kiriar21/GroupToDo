@@ -8,8 +8,9 @@ const sessionMiddleware = session({
   store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
   cookie: {
     httpOnly: true,
-    secure: false,
-    sameSite: 'lax'
+    secure: false, 
+    sameSite: 'lax',
+    maxAge: 1000 * 60 * 60 * 24 
   }
 });
 

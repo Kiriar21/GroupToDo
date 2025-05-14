@@ -14,34 +14,21 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
   
-  useEffect(() => {
-    (async () => {
-      const token = getToken();
-      if (token) {
-        try {
-          const sessionUser = await api.getSession();
-          setUser(sessionUser);
-        } catch {
-          clearSession();
-        }
+   useEffect(() => {
+     (async () => {
+      const session = await api.getSession();
+      if (session.authenticated) {
+        setUser({ id: session.userId });
       }
-    })();
-  }, []);
+     })();
+   }, []);
 
   const login = async (nickname, password) => {
-    const { token } = await api.login(nickname, password);
-    setSession(token);
-    const sessionUser = await api.getSession();
-    setUser(sessionUser);
+  const { user: u } = await api.login(nickname, password);
+  setUser(u);
+  navigate('/dashboard', { replace: true });
+};
 
-    
-    const projects = await api.getProjects();
-    if (projects.length > 0) {
-      navigate(`/dashboard/${projects[0]._id}`, { replace: true });
-    } else {
-      navigate('/', { replace: true });
-    }
-  };
 
   const register = async (nickname, password) => {
     await api.register(nickname, password);
