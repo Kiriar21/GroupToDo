@@ -28,16 +28,12 @@ router.put('/:taskId', isAuthenticated, async (req, res) => {
   const project = await Project.findById(task.projectId);
   const isProjOwner = project.owner.equals(req.userId);
 
-  // Każdy członek projektu może zmienić status,
-  // tylko owner/autor może edytować inne pola!
   if (!isOwner && !isProjOwner) {
-    // tylko status
     if (typeof req.body.status === 'string' && ['To Do', 'In Progress', 'Done'].includes(req.body.status)) {
       task.status = req.body.status;
       if (req.body.status === 'In Progress') task.assignee = req.userId;
       task.updatedAt = Date.now();
       await task.save();
-      // Populate po save
       const populatedTask = await Task.findById(task._id)
         .populate('author', 'nickname')
         .populate('assignee', 'nickname');
@@ -48,13 +44,19 @@ router.put('/:taskId', isAuthenticated, async (req, res) => {
     }
   }
 
-  // Owner lub autor: pełna edycja
   const { status, assignee, title, description } = req.body;
   if (status && status !== task.status) {
     task.status = status;
     if (status === 'In Progress') task.assignee = req.userId;
   }
-  if (assignee && isProjOwner) task.assignee = assignee;
+    if (isProjOwner) {
+      if (assignee === '' || assignee === null) {
+        task.assignee = undefined; 
+      } else if (assignee) {
+        task.assignee = assignee;
+      }
+    }
+
   if (title) task.title = title;
   if (description) task.description = description;
   task.updatedAt = Date.now();

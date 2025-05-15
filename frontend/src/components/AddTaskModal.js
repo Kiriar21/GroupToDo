@@ -8,6 +8,7 @@ const AddTaskModal = ({ open, onClose, project, members }) => {
   const [description, setDescription] = useState('');
   const [assignee, setAssignee]     = useState('');
   const [loading, setLoading]       = useState(false);
+  const memberList = Array.isArray(members) ? members : [];
 
   const handleAdd = async () => {
     setLoading(true);
@@ -42,9 +43,9 @@ const AddTaskModal = ({ open, onClose, project, members }) => {
             onChange={e => setAssignee(e.target.value)}
           >
             <MenuItem value="">Brak</MenuItem>
-            {members.map(m => (
-              <MenuItem value={m._id} key={m._id}>{m.nickname}</MenuItem>
-            ))}
+              {memberList.map(m => (
+                <MenuItem value={m._id} key={m._id}>{m.nickname}</MenuItem>
+              ))}
           </Select>
         </FormControl>
         <Button

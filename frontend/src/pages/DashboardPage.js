@@ -51,8 +51,12 @@ const DashboardPage = () => {
 
   useEffect(() => {
     socket.connect();
+    socket.emit('request:online');
   }, []);
 
+socket.on('connect', () => {
+  socket.emit('request:online');
+});
 
     useEffect(() => {
       projects.forEach(p => {
@@ -168,13 +172,15 @@ const DashboardPage = () => {
             <>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                 <Typography variant="h5">{selectedProject.name}</Typography>
-                <Button
-                  variant="contained"
-                  onClick={() => setShowAddTask(true)}
-                  sx={{ mr: 1 }}
-                >
-                  Dodaj zadanie
-                </Button>
+                  {selectedProject.owner && selectedProject.owner._id === user.id && (
+                    <Button
+                      variant="contained"
+                      onClick={() => setShowAddTask(true)}
+                      sx={{ mr: 1 }}
+                    >
+                      Dodaj zadanie
+                    </Button>
+                  )}
               </Box>
               <Box sx={{ mb: 2 }}>
                 <Typography variant="body1" color="text.secondary">

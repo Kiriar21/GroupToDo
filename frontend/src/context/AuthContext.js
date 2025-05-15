@@ -41,6 +41,7 @@ useEffect(() => {
     setApiToken(token);
     socket.auth = { token };  
     socket.connect();         
+    socket.emit('request:online');
     setUser(u);
     navigate('/dashboard', { replace: true });
   };
