@@ -96,4 +96,5 @@ router.post('/:projectId/invitations', isAuthenticated, isProjectOwner, async (r
   res.json(inv);
 });
 
+
 module.exports = router;

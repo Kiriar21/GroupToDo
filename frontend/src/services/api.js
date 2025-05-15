@@ -73,9 +73,9 @@ const api = {
       .delete(`/projects/${id}`)
       .then(r => r.data),
 
-  createTask: (projectId, title, description) =>
+  createTask: (projectId, title, description, assignee) =>
     apiInstance
-      .post(`/projects/${projectId}/tasks`, { title, description })
+      .post(`/projects/${projectId}/tasks`, { title, description, assignee })
       .then(r => r.data),
 
   updateTask: (projectId, taskId, data) =>

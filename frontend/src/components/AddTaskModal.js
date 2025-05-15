@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
-import { Modal, Box, Typography, TextField, Button, CircularProgress } from '@mui/material';
+import { Modal, Box, Typography, TextField, Button, CircularProgress, MenuItem, Select, InputLabel, FormControl } from '@mui/material';
 import api from '../services/api';
 import socket from '../services/socket';
 
-const AddTaskModal = ({ open, onClose, project }) => {
-  const [title, setTitle]         = useState('');
+const AddTaskModal = ({ open, onClose, project, members }) => {
+  const [title, setTitle]           = useState('');
   const [description, setDescription] = useState('');
-  const [loading, setLoading]     = useState(false);
+  const [assignee, setAssignee]     = useState('');
+  const [loading, setLoading]       = useState(false);
 
   const handleAdd = async () => {
     setLoading(true);
-    const newTask = await api.createTask(project._id, title, description);
+    const newTask = await api.createTask(project._id, title, description, assignee);
     socket.emit('task:create', newTask);
     onClose();
     setTitle('');
     setDescription('');
+    setAssignee('');
     setLoading(false);
   };
 
@@ -32,6 +34,19 @@ const AddTaskModal = ({ open, onClose, project }) => {
           fullWidth margin="normal"
           value={description} onChange={e => setDescription(e.target.value)}
         />
+        <FormControl fullWidth margin="normal">
+          <InputLabel>Przypisz do</InputLabel>
+          <Select
+            value={assignee}
+            label="Przypisz do"
+            onChange={e => setAssignee(e.target.value)}
+          >
+            <MenuItem value="">Brak</MenuItem>
+            {members.map(m => (
+              <MenuItem value={m._id} key={m._id}>{m.nickname}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
         <Button
           variant="contained"
           onClick={handleAdd}

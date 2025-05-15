@@ -59,6 +59,7 @@ const TaskBoard = ({ project, currentUser, isOwner }) => {
                     project={project}
                     currentUser={currentUser}
                     isOwner={isOwner}
+                    members={project.members || []}
                   />
                 ))}
             </Box>

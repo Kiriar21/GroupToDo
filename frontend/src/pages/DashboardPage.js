@@ -216,6 +216,7 @@ const DashboardPage = () => {
         open={showAddTask}
         onClose={() => setShowAddTask(false)}
         project={selectedProject}
+        members={selectedProject?.members || []}
       />
       <AddUserModal
         open={showAddUser}
