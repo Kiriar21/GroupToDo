@@ -62,9 +62,7 @@ const TaskCard = ({ task, project, currentUser, isOwner, members }) => {
               Opis: {task.description || '-'}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Autor: {task.author?.nickname || task.author}
-              <br />
-              Przypisany: {task.assignee?.nickname || (members.find(m => m._id === task.assignee)?.nickname) || 'Brak'}
+              Członek: {task.assignee?.nickname || (members.find(m => m._id === task.assignee)?.nickname) || 'Brak przypisu'}
             </Typography>
           </Box>
           <Box>

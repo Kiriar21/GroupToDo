@@ -16,7 +16,6 @@ const EditTaskModal = ({ open, onClose, project, members, task, isOwner, current
   const handleSave = async () => {
     setLoading(true);
 
-    // Tworzymy payload tylko z dozwolonymi polami!
     let data = {};
     if (isOwner) {
       data = { title, description, status, assignee };

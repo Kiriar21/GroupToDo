@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import socket from '../services/socket';
@@ -119,15 +117,26 @@ const DashboardPage = () => {
 
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 2 }}>
+    <Container maxWidth={false} disableGutters sx={{ minHeight: '90vh', px: 0, py: 2, bgcolor: 'background.default' }}>
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={2.4} sx={{ minWidth: 220 }}>
-          <Paper sx={{ mb: 2, p: 2 }}>
+        <Grid
+          container
+          spacing={2}
+          sx={{
+            minHeight: '100vh',
+            justifyContent: { xs: 'center', md: 'center' },
+            alignItems: { xs: 'center', md: 'flex-start' },
+            px: { xs: 1, md: 4 },
+            py: { xs: 2, md: 4 }
+          }}
+        >
+        <Grid item xs={12} md={2} sx={{ minWidth: 220, mx: { xs: 'auto', md: 0 } }}>
+          <Paper sx={{ p: 2, mb: 2, borderRadius: 3, boxShadow: 4 }}>
             <Typography variant="subtitle1">Zalogowany:</Typography>
             <Typography variant="h6">{user.nickname}</Typography>
           </Paper>
-          <Paper sx={{ mb: 2, p: 2 }}>
+          <Paper sx={{ p: 2, mb: 2, borderRadius: 3, boxShadow: 4 }}>
+
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="h6">Projekty</Typography>
               <IconButton onClick={() => setShowAddProject(true)}>
@@ -141,7 +150,7 @@ const DashboardPage = () => {
               onProjectsChange={setProjects}
             />
           </Paper>
-          <Paper sx={{ mb: 2, p: 2 }}>
+          <Paper sx={{ p: 2, mb: 2, borderRadius: 3, boxShadow: 4 }}>
             <Typography variant="h6">Zaproszenia</Typography>
             <InvitationsModal invitations={invitations} reload={loadInvitations}/>
           </Paper>
@@ -154,8 +163,7 @@ const DashboardPage = () => {
             Wyloguj
           </Button>
         </Grid>
-
-        <Grid item xs={12} md={7.2}>
+          <Grid item xs={12} md={8} sx={{ mx: { xs: 'auto', md: 0 } }}>
           {selectedProject ? (
             <>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
@@ -168,13 +176,11 @@ const DashboardPage = () => {
                   Dodaj zadanie
                 </Button>
               </Box>
-              {selectedProject.description && (
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="body1" color="text.secondary">
-                    Opis tablicy zadań: {selectedProject.description}
-                  </Typography>
-                </Box>
-              )}
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body1" color="text.secondary">
+                  Opis tablicy zadań: {selectedProject.description ? selectedProject.description : 'Brak opisu'}
+                </Typography>
+              </Box>
               <TaskBoard
                 project={selectedProject}
                 currentUser={user}
@@ -185,8 +191,7 @@ const DashboardPage = () => {
             <Typography>Brak projektów</Typography>
           )}
         </Grid>
-
-        <Grid item xs={12} md={2.4} sx={{ minWidth: 220 }}>
+          <Grid item xs={12} md={2} sx={{ minWidth: 220, mx: { xs: 'auto', md: 0 } }}>
           {selectedProject && (
             <Paper sx={{ p: 2, mb: 2 }}>
               <ParticipantList
@@ -222,7 +227,6 @@ const DashboardPage = () => {
           )}
         </Grid>
       </Grid>
-
       <AddProjectModal open={showAddProject} onClose={() => setShowAddProject(false)} />
       <AddTaskModal
         open={showAddTask}

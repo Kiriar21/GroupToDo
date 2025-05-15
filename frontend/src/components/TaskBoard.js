@@ -1,5 +1,3 @@
-// src/components/TaskBoard.js
-
 import React, { useEffect, useState, useCallback } from 'react';
 import { Grid, Paper, Typography, Box } from '@mui/material';
 import TaskCard from './TaskCard';
@@ -11,7 +9,6 @@ const statuses = ['To Do', 'In Progress', 'Done'];
 const TaskBoard = ({ project, currentUser, isOwner }) => {
   const [tasks, setTasks] = useState([]);
 
-  // Ładowanie zadań opakowane w useCallback
   const load = useCallback(async () => {
     try {
       const data = await api.getTasks(project._id);
@@ -41,32 +38,73 @@ const TaskBoard = ({ project, currentUser, isOwner }) => {
     };
   }, [load, project._id]);
 
+  // NAJWAŻNIEJSZE - wymuszenie szerokości na 100%
   return (
-    <Grid container spacing={2}>
-      {statuses.map(status => (
-        <Grid item xs={4} key={status}>
-          <Paper sx={{ p: 1, minHeight: 400 }}>
-            <Typography variant="h6" gutterBottom>
-              {status}
-            </Typography>
-            <Box>
-              {tasks
-                .filter(t => t.status === status)
-                .map(t => (
-                  <TaskCard
-                    key={t._id}
-                    task={t}
-                    project={project}
-                    currentUser={currentUser}
-                    isOwner={isOwner}
-                    members={project.members || []}
-                  />
-                ))}
-            </Box>
-          </Paper>
-        </Grid>
-      ))}
-    </Grid>
+    <Box sx={{ width: '100%', minWidth: 900, maxWidth: '100%', mx: 'auto' }}>
+      <Grid
+        container
+        spacing={2}
+        sx={{
+          width: '100%',
+          minWidth: 900,
+          maxWidth: '100%',
+          alignItems: 'stretch',
+        }}
+      >
+        {statuses.map(status => (
+          <Grid
+            item
+            xs={12}
+            md={4}
+            key={status}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              flex: 1,
+              minWidth: 0, // ważne by nie zawężał się
+            }}
+          >
+            <Paper
+              sx={{
+                p: 1,
+                minHeight: 400,
+                height: '100%',
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-start',
+                alignItems: 'stretch',
+                boxSizing: 'border-box',
+              }}
+            >
+              <Typography variant="h6" gutterBottom align="center">
+                {status}
+              </Typography>
+              <Box sx={{ flex: 1 }}>
+                {tasks.filter(t => t.status === status).length === 0 ? (
+                  <Typography align="center" color="text.secondary" sx={{ mt: 2 }}>
+                    Brak zadań
+                  </Typography>
+                ) : (
+                  tasks
+                    .filter(t => t.status === status)
+                    .map(t => (
+                      <TaskCard
+                        key={t._id}
+                        task={t}
+                        project={project}
+                        currentUser={currentUser}
+                        isOwner={isOwner}
+                        members={project.members || []}
+                      />
+                    ))
+                )}
+              </Box>
+            </Paper>
+          </Grid>
+        ))}
+      </Grid>
+    </Box>
   );
 };
 
